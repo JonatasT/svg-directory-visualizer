@@ -1,0 +1,30 @@
+---
+---
+<div class="mb-4">
+    <input
+      type="file"
+      id="directory-input"
+      {...{"webkitdirectory": true, "directory": true} as any}
+      multiple
+      class="hidden"
+    />
+    <label
+      for="directory-input"
+      class="cursor-pointer bg-cyan-900 hover:bg-cyan-600 text-white text-[1rem] font-bold py-2 px-4 rounded"
+    >
+      Selecionar Diretório
+    </label>
+  </div>
+  
+  <script>
+    const input = document.getElementById('directory-input') as HTMLInputElement;
+    input.addEventListener('change', handleFiles);
+  
+    function handleFiles() {
+      const files = Array.from(input.files || []);
+      const svgFiles = files.filter(file => file.name.endsWith('.svg'));
+      
+      const event = new CustomEvent('svgFilesSelected', { detail: svgFiles });
+      document.dispatchEvent(event);
+    }
+  </script>
