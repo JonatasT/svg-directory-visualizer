@@ -1,8 +1,33 @@
----
----
 <div id="icon-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-[4rem]">
     <!-- Os ícones SVG serão inseridos aqui dinamicamente -->
   </div>
+  
+  <!-- Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-gray-500 bg-opacity-55 flex items-center justify-center">
+    <div class="bg-gray-900 p-6 rounded-lg shadow-lg">
+      <div id="modal-content" class="mb-4"></div>
+      <button id="copy-button" class="bg-blue-500 text-white px-4 py-2 rounded">Copiar Código</button>
+      <button id="close-button" class="bg-red-500 text-white px-4 py-2 rounded ml-2">Fechar</button>
+    </div>
+  </div>
+  
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+    .code-box {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
   
   <script>
     interface SVGFilesSelectedEvent extends CustomEvent {
@@ -19,13 +44,13 @@
         const reader = new FileReader();
         reader.onload = (e) => {
           const div = document.createElement('div');
-          div.className = 'p-4 rounded-lg flex flex-col items-center';
-          
+          div.className = 'p-4 rounded-lg flex flex-col items-center cursor-pointer';
+  
           // Parse o SVG e aplique a cor branca
           const parser = new DOMParser();
           const svgDoc = parser.parseFromString(e.target?.result as string, 'image/svg+xml');
           const svgElement = svgDoc.documentElement;
-          
+  
           // Aplique a cor branca a todos os elementos dentro do SVG
           svgElement.querySelectorAll('*').forEach(el => {
             if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') {
@@ -45,9 +70,55 @@
             ${new XMLSerializer().serializeToString(svgElement)}
             <span class="mt-2 text-[0.6rem] text-white">${file.name}</span>
           `;
+  
+          // Adicione um evento de clique para abrir o modal
+          div.addEventListener('click', () => {
+            const modal = document.getElementById('modal');
+            const modalContent = document.getElementById('modal-content');
+
+            const svgCode = `${new XMLSerializer().serializeToString(svgElement)}`;
+            const escapedSvgCode = svgCode.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            
+
+
+            if (modal && modalContent) {
+              modalContent.innerHTML = `
+                <div class="code-box w-[80svw]">
+                    ${new XMLSerializer().serializeToString(svgElement)}
+                    <pre  class="bg-red w-[70svw]">
+                        <code>
+                            ${escapedSvgCode}
+                        </code>
+                    </pre>
+                </div>
+
+              `;
+              modal.classList.remove('hidden');
+            }
+          });
+  
           iconGrid.appendChild(div);
         };
         reader.readAsText(file);
       });
     }) as EventListener);
+  
+    // Adicione eventos para os botões do modal
+    document.getElementById('close-button')?.addEventListener('click', () => {
+      document.getElementById('modal')?.classList.add('hidden');
+    });
+  
+    document.getElementById('copy-button')?.addEventListener('click', () => {
+      const modalContent = document.getElementById('modal-content');
+      if (modalContent) {
+        const textArea = document.createElement('textarea');
+        textArea.value = modalContent.textContent || '';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Código copiado!');
+      }
+    });
   </script>
+  
